@@ -1,0 +1,15 @@
+<article class="rs rs-modern">
+  <aside>
+    <h1>{{ r.full_name }}</h1>
+    {% if r.headline %}<p class="sub">{{ r.headline }}</p>{% endif %}
+    {% if r.contact_list %}<h2>Contact</h2><ul>{% for c in r.contact_list %}<li>{{ c }}</li>{% endfor %}</ul>{% endif %}
+    {% if r.skill_list %}<h2>Skills</h2><ul>{% for s in r.skill_list %}<li>{{ s }}</li>{% endfor %}</ul>{% endif %}
+    {% if r.cert_list %}<h2>Certifications</h2><ul>{% for c in r.cert_list %}<li>{{ c }}</li>{% endfor %}</ul>{% endif %}
+  </aside>
+  <div class="main">
+    {% if r.summary %}<h2>Profile</h2><p>{{ r.summary }}</p>{% endif %}
+    {% include "analyzer/resume_tpl/_blocks.html" with title="Experience" blocks=r.experience_blocks %}
+    {% include "analyzer/resume_tpl/_blocks.html" with title="Projects" blocks=r.project_blocks %}
+    {% include "analyzer/resume_tpl/_blocks.html" with title="Education" blocks=r.education_blocks %}
+  </div>
+</article>

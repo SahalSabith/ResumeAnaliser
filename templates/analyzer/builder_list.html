@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Resume builder{% endblock %}
+{% block content %}
+<div class="row between"><h1>Resume builder</h1><a class="btn primary" href="{% url 'analyzer:builder_new' %}">New resume</a></div>
+{% if items %}
+<div class="grid g3">
+  {% for r in items %}
+  <div class="card" style="margin-top:0">
+    <h3>{{ r.title }}</h3>
+    <p class="muted">{{ r.get_template_display }} template · updated {{ r.updated_at|date:"d M Y" }}</p>
+    <div class="row">
+      <a class="btn sm primary" href="{% url 'analyzer:builder_preview' r.pk %}">Open</a>
+      <a class="btn sm" href="{% url 'analyzer:builder_edit' r.pk %}">Edit</a>
+      <form class="inline" method="post" action="{% url 'analyzer:builder_delete' r.pk %}">{% csrf_token %}<button class="btn sm danger" onclick="return confirm('Delete this resume?')">Delete</button></form>
+    </div>
+  </div>{% endfor %}
+</div>
+{% else %}
+<div class="card empty"><h2>No resumes yet</h2><p>Pick a template, fill in your details and download a polished resume.</p><a class="btn primary" href="{% url 'analyzer:builder_new' %}">Create your first resume</a></div>
+{% endif %}
+{% endblock %}

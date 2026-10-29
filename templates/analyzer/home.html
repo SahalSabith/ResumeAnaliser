@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>Find out why your resume isn't getting replies.</h1>
+    <p class="muted" style="font-size:1.1rem;max-width:34em">Upload a PDF or DOCX, paste a job description, and get a score, the skills you're missing, and concrete fixes. Build a clean resume in minutes. Your files stay private.</p>
+    <div class="row">
+      <a class="btn primary" href="{% url 'accounts:register' %}">Analyze my resume free</a>
+      <a class="btn" href="{% url 'accounts:login' %}">Sign in</a>
+    </div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div class="ring good" style="--p:78;--s:180px"><span>78</span></div>
+    <p style="margin:.8rem 0 0"><b>Sample resume score</b><br><small>Skills 82 · Education 90 · Format 70 · Impact 66</small></p>
+  </div>
+</section>
+<section class="grid g3">
+  <div class="card"><h3>Score and skills</h3><p class="muted">Reads your resume, finds technical and soft skills, education, projects and experience, then scores quality out of 100.</p></div>
+  <div class="card"><h3>Job match</h3><p class="muted">Paste any job posting to see a match percentage, missing skills and keywords, and roles that fit you.</p></div>
+  <div class="card"><h3>Build and polish</h3><p class="muted">Create a resume from three templates, rewrite weak bullets and draft summaries or cover letters.</p></div>
+</section>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<h1>Analysis history</h1>
+<div class="card">
+  {% if page.object_list %}
+  <table>
+    <tr><th>Resume</th><th class="hide-sm">Date</th><th>Score</th><th>Match</th><th></th></tr>
+    {% for a in page %}
+    <tr>
+      <td><a href="{% url 'analyzer:detail' a.pk %}">{{ a.resume.original_name }}</a>{% if a.job_title %}<br><small>{{ a.job_title }}</small>{% endif %}</td>
+      <td class="hide-sm"><small>{{ a.created_at|date:"d M Y, H:i" }}</small></td>
+      <td><b>{{ a.overall_score }}</b></td>
+      <td>{% if a.match_score is not None %}{{ a.match_score }}%{% else %}–{% endif %}</td>
+      <td class="row"><a class="btn sm" href="{% url 'analyzer:report' a.pk %}">PDF</a>
+        <form class="inline" method="post" action="{% url 'analyzer:analysis_delete' a.pk %}">{% csrf_token %}<button class="btn sm danger" onclick="return confirm('Delete this analysis?')">Delete</button></form></td>
+    </tr>{% endfor %}
+  </table>
+  <div class="pager">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?page={{ page.next_page_number }}">Older</a>{% endif %}</div>
+  {% else %}
+  <div class="empty">Nothing here yet. <a href="{% url 'analyzer:analyze' %}">Analyze your first resume</a>.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Your stored resumes</h2>
+  <p class="muted">Delete the original file but keep your analyses, or remove a resume completely.</p>
+  <table>
+    {% for r in resumes %}
+    <tr>
+      <td>{{ r.original_name }}<br><small>{{ r.uploaded_at|date:"d M Y" }} · {% if r.has_file %}original file stored{% else %}file deleted, text only{% endif %}</small></td>
+      <td class="row" style="justify-content:flex-end">
+        {% if r.has_file %}<form class="inline" method="post" action="{% url 'analyzer:resume_file_delete' r.pk %}">{% csrf_token %}<button class="btn sm" onclick="return confirm('Delete the original file? Analyses stay.')">Delete file</button></form>{% endif %}
+        <form class="inline" method="post" action="{% url 'analyzer:resume_purge' r.pk %}">{% csrf_token %}<button class="btn sm danger" onclick="return confirm('Delete this resume, its text and all its analyses?')">Delete everything</button></form>
+      </td>
+    </tr>{% empty %}<tr><td class="muted">No resumes stored.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

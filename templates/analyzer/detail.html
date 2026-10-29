@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Analysis{% endblock %}
+{% block content %}
+<div class="row between">
+  <div><h1 style="margin:0">{{ a.resume.original_name }}</h1>
+  <small>{{ a.created_at|date:"d M Y, H:i" }}{% if a.job_title %} · for {{ a.job_title }}{% endif %}</small></div>
+  <div class="row">
+    <a class="btn primary" href="{% url 'analyzer:report' a.pk %}">Download report (PDF)</a>
+    {% if a.resume.has_file %}<a class="btn" href="{% url 'analyzer:resume_file' a.resume.pk %}">Original file</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card">
+    <div class="row" style="gap:1.5rem;flex-wrap:nowrap">
+      <div class="ring {{ a.band }}" style="--p:{{ a.overall_score }}"><span>{{ a.overall_score }}</span></div>
+      <div style="flex:1;min-width:0">
+        <h2>{{ a.label }}</h2>
+        <div class="metric"><div class="row"><span>Skills</span><b>{{ a.skills_score }}</b></div><div class="bar"><span style="width:{{ a.skills_score }}%"></span></div></div>
+        <div class="metric"><div class="row"><span>Education</span><b>{{ a.education_score }}</b></div><div class="bar"><span style="width:{{ a.education_score }}%"></span></div></div>
+        <div class="metric"><div class="row"><span>Formatting</span><b>{{ a.format_score }}</b></div><div class="bar"><span style="width:{{ a.format_score }}%"></span></div></div>
+        <div class="metric"><div class="row"><span>Keywords &amp; impact</span><b>{{ a.keyword_score }}</b></div><div class="bar"><span style="width:{{ a.keyword_score }}%"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Job match</h2>
+    {% if d.match %}
+      <div class="row" style="gap:1.5rem;flex-wrap:nowrap">
+        <div class="ring {% if a.match_score >= 65 %}good{% elif a.match_score >= 50 %}fair{% else %}low{% endif %} sm" style="--p:{{ a.match_score }};--s:100px"><span>{{ a.match_score }}%</span></div>
+        <small>Skills matched: {{ d.match.skill_pct|default_if_none:"n/a" }}%<br>Keywords matched: {{ d.match.keyword_pct|default_if_none:"n/a" }}%</small>
+      </div>
+      {% if d.match.matched %}<h3 style="margin-top:1rem">Matched skills</h3><div class="chips">{% for s in d.match.matched %}<span class="chip ok">{{ s }}</span>{% endfor %}</div>{% endif %}
+      {% if d.match.missing_skills %}<h3 style="margin-top:1rem">Missing skills</h3><div class="chips">{% for s in d.match.missing_skills %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
+      {% if d.match.missing_keywords %}<h3 style="margin-top:1rem">Missing keywords</h3><div class="chips">{% for s in d.match.missing_keywords %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
+    {% else %}
+      <p class="muted">Paste a job description to see how well this resume fits it.</p>
+    {% endif %}
+    <details style="margin-top:1rem"><summary><b>{% if d.match %}Try another job description{% else %}Match to a job{% endif %}</b></summary>
+      <form method="post" action="{% url 'analyzer:rematch' a.pk %}" style="margin-top:.8rem">{% csrf_token %}
+        <div class="field"><input type="text" name="job_title" placeholder="Job title (optional)" maxlength="120"></div>
+        <div class="field"><textarea name="job_description" rows="6" required minlength="30" placeholder="Paste the job description"></textarea></div>
+        {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="rm_ai"><label for="rm_ai">Add AI feedback (sends text without contact details to Gemini)</label></div>{% endif %}
+        <button class="btn primary sm" type="submit">Calculate match</button>
+      </form>
+    </details>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Improvement suggestions</h2>
+  {% for s in d.suggestions %}
+    <div class="tip {{ s.priority }}"><b>{{ s.title }}<span class="tag {% if s.source == 'ai' %}ai{% endif %}">{% if s.source == 'ai' %}AI{% else %}{{ s.priority }}{% endif %}</span></b>{{ s.detail }}</div>
+  {% endfor %}
+  {% if d.ai %}
+    <h3 style="margin-top:1.2rem">AI review</h3>
+    <p>{{ d.ai.summary }}</p>
+    {% if d.ai.strengths %}<div class="chips">{% for s in d.ai.strengths %}<span class="chip ok">{{ s }}</span>{% endfor %}</div>{% endif %}
+    {% for r in d.ai.rewrites %}<div class="tip low"><small>Before</small><br>{{ r.before }}<br><small>After</small><br><b style="font-weight:600">{{ r.after }}</b></div>{% endfor %}
+  {% endif %}
+</div>
+
+<div class="grid g2" style="margin-top:1rem">
+  <div class="card" style="margin-top:0">
+    <h2>Skills found</h2>
+    <h3>Technical</h3>
+    <div class="chips">{% for s in d.parsed.tech_skills %}<span class="chip">{{ s }}</span>{% empty %}<small>None detected</small>{% endfor %}</div>
+    <h3 style="margin-top:1rem">Soft skills</h3>
+    <div class="chips">{% for s in d.parsed.soft_skills %}<span class="chip soft">{{ s }}</span>{% empty %}<small>None detected</small>{% endfor %}</div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <h2>Resume structure</h2>
+    <div class="chips">{% for s in d.parsed.sections_found %}<span class="chip ok">{{ s }}</span>{% endfor %}{% for s in d.parsed.sections_missing %}<span class="chip miss">no {{ s }}</span>{% endfor %}</div>
+    <p style="margin-top:1rem" class="muted">{{ d.parsed.stats.word_count }} words · {{ d.parsed.stats.bullets }} bullets · {{ d.parsed.stats.metrics }} measurable results · about {{ d.parsed.experience.years|floatformat:"-1" }} years of experience</p>
+  </div>
+  <div class="card" style="margin-top:0">
+    <h2>Education</h2>
+    <ul class="clean">{% for e in d.parsed.education %}<li>{{ e }}</li>{% empty %}<li class="muted">Not detected</li>{% endfor %}</ul>
+    {% if d.parsed.certifications %}<h3 style="margin-top:1rem">Certifications</h3><ul class="clean">{% for e in d.parsed.certifications %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <div class="card" style="margin-top:0">
+    <h2>Projects &amp; experience</h2>
+    <ul class="clean">{% for e in d.parsed.projects %}<li>{{ e }}</li>{% endfor %}{% for e in d.parsed.experience.entries %}<li>{{ e }}</li>{% empty %}{% if not d.parsed.projects %}<li class="muted">Not detected</li>{% endif %}{% endfor %}</ul>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Job roles that fit your skills</h2>
+  {% for j in d.jobs %}
+    <div class="metric"><div class="row"><b>{{ j.role }}</b><span>{{ j.pct }}% skill fit</span></div>
+    <div class="bar"><span style="width:{{ j.pct }}%"></span></div>
+    {% if j.missing %}<small>To strengthen: {{ j.missing|join:", " }}</small>{% endif %}</div>
+  {% empty %}<p class="muted">Add technical skills to your resume to see recommendations.</p>{% endfor %}
+</div>
+
+<form method="post" action="{% url 'analyzer:analysis_delete' a.pk %}" class="row" style="margin-top:1rem">{% csrf_token %}
+  <button class="btn danger sm" type="submit" onclick="return confirm('Delete this analysis?')">Delete this analysis</button>
+</form>
+{% endblock %}

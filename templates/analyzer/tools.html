@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Writing tools{% endblock %}
+{% block content %}
+<h1>Writing tools</h1>
+<p class="muted">{% if AI_AVAILABLE %}AI is on (Google Gemini free tier). Untick the box to stay fully local.{% else %}Running with the built-in local helper. Add a free Gemini key in <code>.env</code> to unlock AI rewrites.{% endif %}</p>
+<div class="grid g3">
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="bullet">
+    <h2>Bullet point improver</h2>
+    <div class="field"><textarea name="bullet" rows="4" maxlength="600" required placeholder="Responsible for managing the website">{% if tool == "bullet" %}{{ post.bullet }}{% endif %}</textarea></div>
+    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a1" checked><label for="a1">Use AI</label></div>{% endif %}
+    <button class="btn primary sm">Improve bullet</button>
+    {% if result and tool == "bullet" %}<div style="margin-top:1rem">{% for r in result.rewrites %}<div class="tip low">{{ r }}</div>{% endfor %}{% for t in result.tips %}<small>Tip: {{ t }}</small><br>{% endfor %}</div>{% endif %}
+  </form>
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="summary">
+    <h2>Summary generator</h2>
+    <div class="field"><input type="text" name="role" required maxlength="80" placeholder="Target role, e.g. Python Developer" value="{% if tool == 'summary' %}{{ post.role }}{% endif %}"></div>
+    <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Skills, comma separated" value="{% if tool == 'summary' %}{{ post.skills }}{% endif %}"></div>
+    <div class="field"><input type="text" name="years" maxlength="10" placeholder="Years of experience (0 if fresher)" value="{% if tool == 'summary' %}{{ post.years }}{% endif %}"></div>
+    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a2" checked><label for="a2">Use AI</label></div>{% endif %}
+    <button class="btn primary sm">Write summary</button>
+    {% if result and tool == "summary" %}<div class="tip low" style="margin-top:1rem">{{ result.text }}</div>{% endif %}
+  </form>
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="cover">
+    <h2>Cover letter</h2>
+    <div class="field"><input type="text" name="role" required maxlength="80" placeholder="Job title" value="{% if tool == 'cover' %}{{ post.role }}{% endif %}"></div>
+    <div class="field"><input type="text" name="company" maxlength="80" placeholder="Company" value="{% if tool == 'cover' %}{{ post.company }}{% endif %}"></div>
+    <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Your key skills" value="{% if tool == 'cover' %}{{ post.skills }}{% endif %}"></div>
+    <div class="field"><textarea name="jd" rows="3" maxlength="3000" placeholder="Job description (optional)">{% if tool == 'cover' %}{{ post.jd }}{% endif %}</textarea></div>
+    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a3" checked><label for="a3">Use AI</label></div>{% endif %}
+    <button class="btn primary sm">Write letter</button>
+    {% if result and tool == "cover" %}<div class="tip low" style="margin-top:1rem;white-space:pre-wrap">{{ result.text }}</div>{% endif %}
+  </form>
+</div>
+{% endblock %}

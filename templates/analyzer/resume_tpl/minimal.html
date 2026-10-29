@@ -1,0 +1,11 @@
+<article class="rs rs-minimal">
+  <h1>{{ r.full_name }}</h1>
+  {% if r.headline %}<p class="sub">{{ r.headline }}</p>{% endif %}
+  <p class="sub">{{ r.contact_list|join:"  /  " }}</p>
+  {% if r.summary %}<h2>PROFILE</h2><p>{{ r.summary }}</p>{% endif %}
+  {% include "analyzer/resume_tpl/_blocks.html" with title="EXPERIENCE" blocks=r.experience_blocks %}
+  {% include "analyzer/resume_tpl/_blocks.html" with title="PROJECTS" blocks=r.project_blocks %}
+  {% include "analyzer/resume_tpl/_blocks.html" with title="EDUCATION" blocks=r.education_blocks %}
+  {% if r.skill_list %}<h2>SKILLS</h2><p>{{ r.skill_list|join:"  ·  " }}</p>{% endif %}
+  {% if r.cert_list %}<h2>CERTIFICATIONS</h2><ul>{% for c in r.cert_list %}<li>{{ c }}</li>{% endfor %}</ul>{% endif %}
+</article>

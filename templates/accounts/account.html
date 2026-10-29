@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block content %}
+<h1>Your account</h1>
+<div class="grid g2">
+  <div class="card">
+    <h2>Profile</h2>
+    <p><b>{{ user.first_name }}</b><br>{{ user.email }}<br><span class="muted">@{{ user.username }}</span></p>
+    <p class="muted">{{ resume_count }} resume{{ resume_count|pluralize }} stored · {{ analysis_count }} analys{{ analysis_count|pluralize:"is,es" }}</p>
+    <a class="btn" href="{% url 'accounts:password_change' %}">Change password</a>
+  </div>
+  <div class="card">
+    <h2>Privacy</h2>
+    <ul class="clean">
+      <li>Files are stored in a private folder with random names, never at a public URL.</li>
+      <li>Only you can open, download or delete your resumes and reports.</li>
+      <li>AI feedback is optional and strips your email, phone and links before sending.</li>
+    </ul>
+    <p style="margin-top:1rem"><a href="{% url 'analyzer:history' %}">Manage stored resumes</a></p>
+  </div>
+</div>
+<div class="card" style="border-color:#f0b9be">
+  <h2>Delete account</h2>
+  <p class="muted">Permanently deletes your account, uploaded files, extracted text, analyses and built resumes. This cannot be undone.</p>
+  <form method="post" action="{% url 'accounts:delete' %}" class="row">{% csrf_token %}
+    <input type="password" name="password" placeholder="Confirm your password" required style="max-width:280px" autocomplete="current-password">
+    <button class="btn danger" type="submit" onclick="return confirm('Delete your account and all data permanently?')">Delete everything</button>
+  </form>
+</div>
+{% endblock %}

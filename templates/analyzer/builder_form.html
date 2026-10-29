@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{% if obj %}Edit{% else %}New{% endif %} resume{% endblock %}
+{% block content %}
+<h1>{% if obj %}Edit resume{% else %}New resume{% endif %}</h1>
+<form method="post" class="card" novalidate>{% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="grid g2">
+    {% for field in form %}{% if forloop.counter <= 8 %}<div>{% include "_field.html" %}</div>{% endif %}{% endfor %}
+  </div>
+  {% for field in form %}
+    {% if forloop.counter > 8 %}
+      {% include "_field.html" %}
+      {% if field.name == "summary" %}
+        <button type="button" class="btn sm" id="ai-sum" style="margin:-.4rem 0 1rem">Suggest a summary from my headline and skills</button> <small id="ai-msg"></small>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  <div class="row"><button class="btn primary" type="submit">Save and preview</button>
+    <a class="btn" href="{% url 'analyzer:builder_list' %}">Cancel</a></div>
+</form>
+<script>
+document.getElementById("ai-sum").addEventListener("click", async function () {
+  var msg = document.getElementById("ai-msg"); msg.textContent = "Writing...";
+  try {
+    var r = await fetch("{% url 'analyzer:builder_suggest' %}", {method: "POST",
+      headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+      body: JSON.stringify({role: document.getElementById("id_headline").value || document.getElementById("id_title").value,
+                            skills: document.getElementById("id_skills").value, years: ""})});
+    var d = await r.json();
+    if (!r.ok) { msg.textContent = d.error || "Could not suggest."; return; }
+    document.getElementById("id_summary").value = d.summary;
+    msg.textContent = d.ai ? "Written with AI. Edit freely." : "Draft from the built-in helper. Edit freely.";
+  } catch (e) { msg.textContent = "Could not suggest right now."; }
+});
+</script>
+{% endblock %}

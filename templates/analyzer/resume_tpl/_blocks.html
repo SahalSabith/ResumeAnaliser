@@ -1,0 +1,3 @@
+{% if blocks %}<h2>{{ title }}</h2>
+{% for b in blocks %}<div class="entry"><div class="head"><strong>{{ b.parts.0 }}</strong>{% if b.parts|length > 1 %}<span>{{ b.parts|slice:"1:"|join:" · " }}</span>{% endif %}</div>
+{% if b.bullets %}<ul>{% for x in b.bullets %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}{% endif %}
