@@ -23,7 +23,7 @@
         <a href="{% url 'analyzer:dashboard' %}" class="{% if name == 'dashboard' %}on{% endif %}">Dashboard</a>
         <a href="{% url 'analyzer:analyze' %}" class="{% if name == 'analyze' %}on{% endif %}">Analyze</a>
         <a href="{% url 'analyzer:builder_list' %}" class="{% if name == 'builder_list' or name == 'builder_new' or name == 'builder_edit' or name == 'builder_preview' %}on{% endif %}">Builder</a>
-        <a href="{% url 'analyzer:tools' %}" class="{% if name == 'tools' %}on{% endif %}">Tools</a>
+        <a href="{% url 'analyzer:tools' %}" class="{% if name == 'tools' %}on{% endif %}">AI tools</a>
         <a href="{% url 'analyzer:history' %}" class="{% if name == 'history' %}on{% endif %}">History</a>
         <a class="user-chip {% if name == 'account' or name == 'password_change' %}on{% endif %}" href="{% url 'accounts:account' %}">
           <span class="avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>

@@ -19,7 +19,8 @@
         <p class="kicker">Latest analysis</p>
         <h2>{{ latest.label }}</h2>
         <p class="muted">{{ latest.resume.original_name }} · {{ latest.created_at|date:"d M Y" }}{% if latest.match_score is not None %}<br>Job match <b>{{ latest.match_score }}%</b>{% endif %}</p>
-        <a class="btn sm" href="{% url 'analyzer:detail' latest.pk %}">Open full analysis</a>
+        {% if latest.data.ai.summary %}<p>{{ latest.data.ai.summary }}</p>{% endif %}
+        <a class="btn sm" href="{% url 'analyzer:detail' latest.pk %}">Open full AI analysis</a>
       </div>
     </div>
   </div>

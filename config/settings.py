@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -100,9 +101,10 @@ if not DEBUG:
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
-# ---- Free AI (Google Gemini free tier). Optional. ----
+# ---- AI (Google Gemini). New keys cannot use gemini-2.5-flash; the client falls back. ----
+TESTING = "test" in sys.argv
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"

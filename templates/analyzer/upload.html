@@ -5,13 +5,13 @@
   <div>
     <p class="kicker">Analyzer</p>
     <h1>Analyze a resume</h1>
-    <p class="lede">Upload a file, optionally paste a job posting, and get a score with concrete fixes.</p>
+    <p class="lede">{% if AI_AVAILABLE %}Gemini reviews every upload: score, missing skills, rewrites, interview questions and career paths.{% else %}Upload a file, optionally paste a job posting, and get a score with concrete fixes.{% endif %}</p>
   </div>
 </header>
 <div class="grid g-main">
   <form method="post" enctype="multipart/form-data" class="card" novalidate>{% csrf_token %}
     {% for field in form %}
-      {% if field.name == "use_ai" and not AI_AVAILABLE %}{% else %}{% include "_field.html" %}{% endif %}
+      {% include "_field.html" %}
     {% endfor %}
     <button class="btn primary" type="submit">Analyze resume</button>
   </form>
@@ -21,12 +21,12 @@
     </div>
     <h3>What you get</h3>
     <ul class="clean">
-      <li>Score out of 100 for skills, education, formatting and impact</li>
+      <li>AI score review plus local ATS scoring</li>
       <li>Skills, education, projects and experience detected</li>
-      <li>With a job description: match %, missing skills and keywords</li>
-      <li>Fix list and job roles that fit your skills</li>
+      <li>Job match %, missing keywords, and a tailored rewrite</li>
+      <li>Interview questions and next-step roles from Gemini</li>
     </ul>
-    <div class="privacy-note" style="margin-top:1rem">Files up to {{ MAX_UPLOAD_MB }} MB. Stored privately, visible only to you.{% if not AI_AVAILABLE %} Analysis runs fully on this server.{% endif %}</div>
+    <div class="privacy-note" style="margin-top:1rem">Files up to {{ MAX_UPLOAD_MB }} MB. Contact details are stripped before Gemini sees the text.{% if not AI_AVAILABLE %} Add GEMINI_API_KEY in .env to turn AI on.{% endif %}</div>
   </aside>
 </div>
 {% endblock %}

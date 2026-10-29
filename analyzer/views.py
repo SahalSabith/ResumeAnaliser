@@ -22,13 +22,24 @@ def home(request):
 
 
 # ------------------------------------------------------------------ analysis core
-def _run_analysis(user, resume, job_title, jd, use_ai):
+def _run_analysis(user, resume, job_title, jd, use_ai=True):
     data = scoring.analyze(resume.extracted_text, jd)
-    review = ai.review_resume(resume.extracted_text, jd) if (use_ai and ai.ai_enabled()) else None
+    review = ai.enrich_resume(resume.extracted_text, jd, job_title) if use_ai else None
     if review:
-        for s in review["suggestions"]:
-            if s["title"]:
+        for s in review.get("suggestions", []):
+            if s.get("title"):
                 data["suggestions"].append({"priority": "medium", "title": s["title"], "detail": s["detail"], "source": "ai"})
+        if review.get("career"):
+            data["jobs"] = [{"role": c["role"], "pct": 0, "matched": [], "missing": [c["gap"]] if c.get("gap") else [],
+                             "why": c.get("why", "")} for c in review["career"]] + data["jobs"]
+            # keep unique roles, AI-first
+            seen, jobs = set(), []
+            for j in data["jobs"]:
+                key = j["role"].lower()
+                if key not in seen:
+                    seen.add(key)
+                    jobs.append(j)
+            data["jobs"] = jobs[:6]
     data["ai"] = review
     sc, match = data["scores"], data["match"]
     return Analysis.objects.create(
@@ -78,12 +89,14 @@ def analyze(request):
                 resume.extracted_text = text[:40000]
                 resume.save(update_fields=["extracted_text"])
                 analysis = _run_analysis(request.user, resume, form.cleaned_data["job_title"],
-                                         form.cleaned_data["job_description"], form.cleaned_data["use_ai"])
+                                         form.cleaned_data["job_description"], True)
                 if form.cleaned_data["delete_after"]:
                     resume.delete_file()
                     messages.info(request, "Original file deleted. Only the extracted text remains in your account.")
-                if form.cleaned_data["use_ai"] and not analysis.data.get("ai"):
-                    messages.warning(request, "AI feedback wasn't available right now, so you're seeing the built-in analysis.")
+                if ai.ai_enabled() and not analysis.data.get("ai"):
+                    messages.warning(request, "Gemini was busy, so you're seeing the built-in analysis. Try again in a moment.")
+                elif analysis.data.get("ai"):
+                    messages.success(request, "AI review is included — strengths, rewrites, interview questions and career paths.")
                 return redirect("analyzer:detail", pk=analysis.pk)
     return render(request, "analyzer/upload.html", {"form": form})
 
@@ -103,8 +116,8 @@ def rematch(request, pk):
         messages.error(request, " ".join(e for errs in form.errors.values() for e in errs))
         return redirect("analyzer:detail", pk=pk)
     new = _run_analysis(request.user, a.resume, form.cleaned_data["job_title"],
-                        form.cleaned_data["job_description"].strip(), form.cleaned_data["use_ai"])
-    messages.success(request, "Matched against the new job description.")
+                        form.cleaned_data["job_description"].strip(), True)
+    messages.success(request, "Matched against the new job description with an AI fit review.")
     return redirect("analyzer:detail", pk=new.pk)
 
 
@@ -163,17 +176,23 @@ def resume_purge(request, pk):
 def tools(request):
     result, tool = None, request.POST.get("tool")
     if request.method == "POST":
-        use_ai = bool(request.POST.get("use_ai"))
         g = lambda k: request.POST.get(k, "").strip()
         if tool == "bullet" and len(g("bullet")) >= 5:
-            result = ai.improve_bullet(g("bullet")[:600], use_ai)
+            result = ai.improve_bullet(g("bullet")[:600], True)
         elif tool == "summary" and g("role"):
-            text, used = ai.generate_summary(g("role")[:80], g("skills")[:300], g("years")[:10], use_ai)
+            text, used = ai.generate_summary(g("role")[:80], g("skills")[:300], g("years")[:10], True)
             result = {"text": text, "ai": used}
         elif tool == "cover" and g("role"):
             text, used = ai.cover_letter(g("role")[:80], g("company")[:80], g("skills")[:300], g("jd")[:3000],
-                                         request.user.first_name, use_ai)
+                                         request.user.first_name, True)
             result = {"text": text, "ai": used}
+        elif tool == "linkedin" and g("role"):
+            text, used = ai.linkedin_about(g("role")[:80], g("skills")[:300], g("years")[:10], True)
+            result = {"text": text, "ai": used}
+        elif tool == "interview" and g("role"):
+            result = ai.interview_prep(g("role")[:80], g("skills")[:300], g("jd")[:3000], True)
+        elif tool == "tailor" and len(g("resume")) >= 40 and len(g("jd")) >= 30:
+            result = ai.tailor_to_job(g("resume")[:5000], g("jd")[:3000], True)
         else:
             messages.error(request, "Please fill in the required fields for that tool.")
             tool = None
@@ -237,7 +256,7 @@ def builder_analyze(request, pk):
     r = get_object_or_404(BuiltResume, pk=pk, user=request.user)
     resume = Resume.objects.create(user=request.user, original_name=f"{r.title} (built in ResumeIQ)",
                                    extracted_text=r.as_plain_text()[:40000])
-    a = _run_analysis(request.user, resume, "", "", False)
+    a = _run_analysis(request.user, resume, r.headline, "", True)
     return redirect("analyzer:detail", pk=a.pk)
 
 
@@ -248,8 +267,32 @@ def builder_suggest(request):
         body = json.loads(request.body or b"{}")
     except ValueError:
         return JsonResponse({"error": "bad request"}, status=400)
+    action = str(body.get("action", "summary")).strip()
     role = str(body.get("role", "")).strip()[:80]
-    if not role:
-        return JsonResponse({"error": "Enter a headline or target role first."}, status=400)
-    text, used = ai.generate_summary(role, str(body.get("skills", ""))[:300], str(body.get("years", ""))[:10], True)
-    return JsonResponse({"summary": text, "ai": used})
+    skills = str(body.get("skills", ""))[:300]
+    years = str(body.get("years", ""))[:10]
+    text = str(body.get("text", ""))[:4000]
+    jd = str(body.get("jd", ""))[:3000]
+    if action == "summary":
+        if not role:
+            return JsonResponse({"error": "Enter a headline or target role first."}, status=400)
+        summary, used = ai.generate_summary(role, skills, years, True)
+        return JsonResponse({"summary": summary, "ai": used})
+    if action == "skills":
+        if not role:
+            return JsonResponse({"error": "Enter a headline or target role first."}, status=400)
+        out = ai.suggest_skills(role, skills, True)
+        return JsonResponse(out)
+    if action == "rewrite":
+        section = str(body.get("section", "experience"))[:40]
+        rewritten, used = ai.rewrite_section(section, text, role, True)
+        return JsonResponse({"text": rewritten, "ai": used})
+    if action == "tailor":
+        if len(jd) < 30:
+            return JsonResponse({"error": "Paste a job description (at least a few sentences)."}, status=400)
+        return JsonResponse(ai.tailor_to_job(text, jd, True))
+    if action == "bullet":
+        if len(text) < 5:
+            return JsonResponse({"error": "Paste a bullet to improve."}, status=400)
+        return JsonResponse(ai.improve_bullet(text[:600], True))
+    return JsonResponse({"error": "Unknown action."}, status=400)

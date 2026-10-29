@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Writing tools{% endblock %}
+{% block title %}AI writing tools{% endblock %}
 {% block content %}
 <header class="page-head">
   <div>
     <p class="kicker">Writing</p>
-    <h1>Writing tools</h1>
-    <p class="lede">{% if AI_AVAILABLE %}AI is on (Google Gemini free tier). Untick the box to stay fully local.{% else %}Running with the built-in local helper. Add a free Gemini key in <code>.env</code> to unlock AI rewrites.{% endif %}</p>
+    <h1>AI writing tools</h1>
+    <p class="lede">{% if AI_AVAILABLE %}Every tool runs on Google Gemini. Edit the draft before you paste it into a resume.{% else %}Add a Gemini key in <code>.env</code> to unlock AI. Until then these use a built-in helper.{% endif %}</p>
   </div>
 </header>
 <div class="grid g3">
@@ -16,9 +16,8 @@
     <h2>Bullet point improver</h2>
     <p class="muted">Turn a vague duty into a stronger achievement line.</p>
     <div class="field"><textarea name="bullet" rows="4" maxlength="600" required placeholder="Responsible for managing the website">{% if tool == "bullet" %}{{ post.bullet }}{% endif %}</textarea></div>
-    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a1" checked><label for="a1">Use AI</label></div>{% endif %}
-    <button class="btn primary sm">Improve bullet</button>
-    {% if result and tool == "bullet" %}<div style="margin-top:1rem">{% for r in result.rewrites %}<div class="tip low">{{ r }}</div>{% endfor %}{% for t in result.tips %}<small>Tip: {{ t }}</small><br>{% endfor %}</div>{% endif %}
+    <button class="btn primary sm">Improve with AI</button>
+    {% if result and tool == "bullet" %}<div style="margin-top:1rem">{% for r in result.rewrites %}<div class="tip low">{{ r }}</div>{% endfor %}{% for t in result.tips %}<small>Tip: {{ t }}</small><br>{% endfor %}{% if result.ai %}<small>Written with Gemini.</small>{% endif %}</div>{% endif %}
   </form>
   <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="summary">
     <div class="icon-box mint">
@@ -29,8 +28,7 @@
     <div class="field"><input type="text" name="role" required maxlength="80" placeholder="Target role, e.g. Python Developer" value="{% if tool == 'summary' %}{{ post.role }}{% endif %}"></div>
     <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Skills, comma separated" value="{% if tool == 'summary' %}{{ post.skills }}{% endif %}"></div>
     <div class="field"><input type="text" name="years" maxlength="10" placeholder="Years of experience (0 if fresher)" value="{% if tool == 'summary' %}{{ post.years }}{% endif %}"></div>
-    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a2" checked><label for="a2">Use AI</label></div>{% endif %}
-    <button class="btn primary sm">Write summary</button>
+    <button class="btn primary sm">Write with AI</button>
     {% if result and tool == "summary" %}<div class="tip low" style="margin-top:1rem">{{ result.text }}</div>{% endif %}
   </form>
   <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="cover">
@@ -43,9 +41,49 @@
     <div class="field"><input type="text" name="company" maxlength="80" placeholder="Company" value="{% if tool == 'cover' %}{{ post.company }}{% endif %}"></div>
     <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Your key skills" value="{% if tool == 'cover' %}{{ post.skills }}{% endif %}"></div>
     <div class="field"><textarea name="jd" rows="3" maxlength="3000" placeholder="Job description (optional)">{% if tool == 'cover' %}{{ post.jd }}{% endif %}</textarea></div>
-    {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="a3" checked><label for="a3">Use AI</label></div>{% endif %}
     <button class="btn primary sm">Write letter</button>
     {% if result and tool == "cover" %}<div class="tip low" style="margin-top:1rem;white-space:pre-wrap">{{ result.text }}</div>{% endif %}
+  </form>
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="linkedin">
+    <div class="icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 11v5M8 8h.01M12 16v-5M16 16v-3a2 2 0 0 0-4 0"/></svg>
+    </div>
+    <h2>LinkedIn About</h2>
+    <p class="muted">A first-person profile blurb, not a resume dump.</p>
+    <div class="field"><input type="text" name="role" required maxlength="80" placeholder="Headline / role" value="{% if tool == 'linkedin' %}{{ post.role }}{% endif %}"></div>
+    <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Skills" value="{% if tool == 'linkedin' %}{{ post.skills }}{% endif %}"></div>
+    <div class="field"><input type="text" name="years" maxlength="10" placeholder="Years of experience" value="{% if tool == 'linkedin' %}{{ post.years }}{% endif %}"></div>
+    <button class="btn primary sm">Write About</button>
+    {% if result and tool == "linkedin" %}<div class="tip low" style="margin-top:1rem;white-space:pre-wrap">{{ result.text }}</div>{% endif %}
+  </form>
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="interview">
+    <div class="icon-box mint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <h2>Interview prep</h2>
+    <p class="muted">Likely questions plus how to answer them.</p>
+    <div class="field"><input type="text" name="role" required maxlength="80" placeholder="Role you are interviewing for" value="{% if tool == 'interview' %}{{ post.role }}{% endif %}"></div>
+    <div class="field"><input type="text" name="skills" maxlength="300" placeholder="Your skills" value="{% if tool == 'interview' %}{{ post.skills }}{% endif %}"></div>
+    <div class="field"><textarea name="jd" rows="3" maxlength="3000" placeholder="Job description (optional)">{% if tool == 'interview' %}{{ post.jd }}{% endif %}</textarea></div>
+    <button class="btn primary sm">Generate questions</button>
+    {% if result and tool == "interview" %}<div style="margin-top:1rem">{% for q in result.questions %}<div class="tip medium"><b>{{ q.q }}</b>{{ q.tip }}</div>{% endfor %}</div>{% endif %}
+  </form>
+  <form class="card" method="post" style="margin-top:0">{% csrf_token %}<input type="hidden" name="tool" value="tailor">
+    <div class="icon-box amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </div>
+    <h2>Tailor to a job</h2>
+    <p class="muted">Paste resume text and a posting. Gemini suggests keywords and rewrites.</p>
+    <div class="field"><textarea name="resume" rows="4" maxlength="5000" required placeholder="Paste resume text">{% if tool == "tailor" %}{{ post.resume }}{% endif %}</textarea></div>
+    <div class="field"><textarea name="jd" rows="3" maxlength="3000" required placeholder="Paste job description">{% if tool == "tailor" %}{{ post.jd }}{% endif %}</textarea></div>
+    <button class="btn primary sm">Tailor with AI</button>
+    {% if result and tool == "tailor" %}
+      <div style="margin-top:1rem">
+        {% if result.summary %}<p>{{ result.summary }}</p>{% endif %}
+        {% if result.keywords_to_add %}<div class="chips">{% for s in result.keywords_to_add %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
+        {% for r in result.bullet_rewrites %}<div class="tip low"><small>Before</small><br>{{ r.before }}<br><small>After</small><br><b style="font-weight:600">{{ r.after }}</b></div>{% endfor %}
+      </div>
+    {% endif %}
   </form>
 </div>
 {% endblock %}

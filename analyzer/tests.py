@@ -171,3 +171,7 @@ class BuilderToolTests(TestCase):
         self.assertContains(r, "Led managing the website")
         r = self.client.post(reverse("analyzer:tools"), {"tool": "cover", "role": "Python Developer", "company": "Acme", "skills": "Python, SQL"})
         self.assertContains(r, "Acme")
+        r = self.client.post(reverse("analyzer:tools"), {"tool": "linkedin", "role": "Python Developer", "skills": "Python"})
+        self.assertContains(r, "Python Developer")
+        r = self.client.post(reverse("analyzer:tools"), {"tool": "interview", "role": "Python Developer", "skills": "Python"})
+        self.assertContains(r, "Walk me through")

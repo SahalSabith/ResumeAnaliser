@@ -56,6 +56,18 @@ def build_pdf(a):
         story.append(P(f"[{s['priority'].upper()}] {s['title']}: {s['detail']}"))
         story.append(Spacer(1, 3))
 
+    ai_pack = d.get("ai") or {}
+    if ai_pack:
+        story += [P("AI review (Gemini)", h2), P(ai_pack.get("summary") or "")]
+        for r in ai_pack.get("rewrites") or []:
+            story.append(P(f"Rewrite: {r.get('before','')} → {r.get('after','')}"))
+        if ai_pack.get("ats_keywords"):
+            story.append(P("ATS keywords to add: " + ", ".join(ai_pack["ats_keywords"])))
+        if ai_pack.get("interview"):
+            story.append(P("Interview prep", h2))
+            for q in ai_pack["interview"]:
+                story.append(P(f"Q: {q.get('q','')} — {q.get('tip','')}"))
+
     if d.get("jobs"):
         story.append(P("Recommended job roles", h2))
         for j in d["jobs"]:

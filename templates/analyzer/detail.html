@@ -37,15 +37,15 @@
       {% if d.match.matched %}<h3 style="margin-top:1rem">Matched skills</h3><div class="chips">{% for s in d.match.matched %}<span class="chip ok">{{ s }}</span>{% endfor %}</div>{% endif %}
       {% if d.match.missing_skills %}<h3 style="margin-top:1rem">Missing skills</h3><div class="chips">{% for s in d.match.missing_skills %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
       {% if d.match.missing_keywords %}<h3 style="margin-top:1rem">Missing keywords</h3><div class="chips">{% for s in d.match.missing_keywords %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
+      {% if d.ai.match_notes %}<p style="margin-top:1rem">{{ d.ai.match_notes }}</p>{% endif %}
     {% else %}
-      <p class="muted">Paste a job description to see how well this resume fits it.</p>
+      <p class="muted">Paste a job description to see how well this resume fits it. Gemini will score the fit and suggest keywords.</p>
     {% endif %}
     <details style="margin-top:1rem"><summary>{% if d.match %}Try another job description{% else %}Match to a job{% endif %}</summary>
       <form method="post" action="{% url 'analyzer:rematch' a.pk %}" style="margin-top:.8rem">{% csrf_token %}
         <div class="field"><input type="text" name="job_title" placeholder="Job title (optional)" maxlength="120"></div>
         <div class="field"><textarea name="job_description" rows="6" required minlength="30" placeholder="Paste the job description"></textarea></div>
-        {% if AI_AVAILABLE %}<div class="field check"><input type="checkbox" name="use_ai" id="rm_ai"><label for="rm_ai">Add AI feedback (sends text without contact details to Gemini)</label></div>{% endif %}
-        <button class="btn primary sm" type="submit">Calculate match</button>
+        <button class="btn primary sm" type="submit">AI match this job</button>
       </form>
     </details>
   </div>
@@ -61,6 +61,7 @@
     <p>{{ d.ai.summary }}</p>
     {% if d.ai.strengths %}<div class="chips">{% for s in d.ai.strengths %}<span class="chip ok">{{ s }}</span>{% endfor %}</div>{% endif %}
     {% for r in d.ai.rewrites %}<div class="tip low"><small>Before</small><br>{{ r.before }}<br><small>After</small><br><b style="font-weight:600">{{ r.after }}</b></div>{% endfor %}
+    {% if d.ai.ats_keywords %}<h3 style="margin-top:1.2rem">ATS keywords to add</h3><div class="chips">{% for s in d.ai.ats_keywords %}<span class="chip miss">{{ s }}</span>{% endfor %}</div>{% endif %}
   {% endif %}
 </div>
 
@@ -88,11 +89,21 @@
   </div>
 </div>
 
+{% if d.ai.interview %}
+<div class="card">
+  <h2>AI interview prep</h2>
+  {% for q in d.ai.interview %}
+    <div class="tip medium"><b>{{ q.q }}</b>{{ q.tip }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="card">
   <h2>Job roles that fit your skills</h2>
   {% for j in d.jobs %}
-    <div class="metric"><div class="row"><b>{{ j.role }}</b><span>{{ j.pct }}% skill fit</span></div>
-    <div class="bar"><span style="width:{{ j.pct }}%"></span></div>
+    <div class="metric"><div class="row"><b>{{ j.role }}</b><span>{% if j.pct %}{{ j.pct }}% skill fit{% else %}AI path{% endif %}</span></div>
+    {% if j.pct %}<div class="bar"><span style="width:{{ j.pct }}%"></span></div>{% endif %}
+    {% if j.why %}<small>{{ j.why }}</small>{% endif %}
     {% if j.missing %}<small>To strengthen: {{ j.missing|join:", " }}</small>{% endif %}</div>
   {% empty %}<p class="muted">Add technical skills to your resume to see recommendations.</p>{% endfor %}
 </div>

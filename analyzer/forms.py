@@ -14,8 +14,6 @@ class UploadForm(forms.Form):
     job_description = forms.CharField(
         label="Job description (optional)", required=False, max_length=8000,
         widget=forms.Textarea(attrs={"rows": 7, "placeholder": "Paste the job posting here to get a match score and missing skills."}))
-    use_ai = forms.BooleanField(
-        label="Add AI feedback (sends your resume text, with contact details removed, to Google Gemini)", required=False)
     delete_after = forms.BooleanField(
         label="Delete the original file right after analysis (only the extracted text is kept)", required=False)
 
@@ -42,7 +40,6 @@ class RematchForm(forms.Form):
     job_title = forms.CharField(max_length=120, required=False)
     job_description = forms.CharField(min_length=30, max_length=8000,
                                       error_messages={"min_length": "Paste at least a few sentences of the job description."})
-    use_ai = forms.BooleanField(required=False)
 
 
 class BuiltResumeForm(forms.ModelForm):

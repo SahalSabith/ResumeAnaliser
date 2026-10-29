@@ -5,7 +5,7 @@
   <div>
     <p class="kicker">Builder</p>
     <h1>{% if obj %}Edit resume{% else %}New resume{% endif %}</h1>
-    <p class="lede">Basics first, then summary, skills, and each section of the resume.</p>
+    <p class="lede">{% if AI_AVAILABLE %}Gemini can draft your summary, skills list, and experience bullets from the facts you type.{% else %}Basics first, then summary, skills, and each section of the resume.{% endif %}</p>
   </div>
 </header>
 <form method="post" class="card" novalidate>{% csrf_token %}
@@ -19,7 +19,16 @@
       {% if field.name == "summary" %}<p class="form-section">Content</p>{% endif %}
       {% include "_field.html" %}
       {% if field.name == "summary" %}
-        <button type="button" class="btn sm" id="ai-sum" style="margin:-.4rem 0 1rem">Suggest a summary from my headline and skills</button> <small id="ai-msg"></small>
+        <div class="row" style="margin:-.4rem 0 1rem"><button type="button" class="btn sm" data-ai="summary">AI summary</button> <small class="ai-msg"></small></div>
+      {% endif %}
+      {% if field.name == "skills" %}
+        <div class="row" style="margin:-.4rem 0 1rem"><button type="button" class="btn sm" data-ai="skills">AI skill list</button></div>
+      {% endif %}
+      {% if field.name == "experience" %}
+        <div class="row" style="margin:-.4rem 0 1rem"><button type="button" class="btn sm" data-ai="rewrite" data-section="experience" data-target="id_experience">AI rewrite experience</button></div>
+      {% endif %}
+      {% if field.name == "projects" %}
+        <div class="row" style="margin:-.4rem 0 1rem"><button type="button" class="btn sm" data-ai="rewrite" data-section="projects" data-target="id_projects">AI rewrite projects</button></div>
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -27,18 +36,32 @@
     <a class="btn" href="{% url 'analyzer:builder_list' %}">Cancel</a></div>
 </form>
 <script>
-document.getElementById("ai-sum").addEventListener("click", async function () {
-  var msg = document.getElementById("ai-msg"); msg.textContent = "Writing...";
-  try {
-    var r = await fetch("{% url 'analyzer:builder_suggest' %}", {method: "POST",
-      headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
-      body: JSON.stringify({role: document.getElementById("id_headline").value || document.getElementById("id_title").value,
-                            skills: document.getElementById("id_skills").value, years: ""})});
-    var d = await r.json();
-    if (!r.ok) { msg.textContent = d.error || "Could not suggest."; return; }
-    document.getElementById("id_summary").value = d.summary;
-    msg.textContent = d.ai ? "Written with AI. Edit freely." : "Draft from the built-in helper. Edit freely.";
-  } catch (e) { msg.textContent = "Could not suggest right now."; }
+function val(id) { var el = document.getElementById(id); return el ? el.value : ""; }
+function setMsg(t) { document.querySelectorAll(".ai-msg").forEach(function (n) { n.textContent = t; }); }
+document.querySelectorAll("[data-ai]").forEach(function (btn) {
+  btn.addEventListener("click", async function () {
+    setMsg("Gemini is writing...");
+    var action = btn.getAttribute("data-ai");
+    var payload = {
+      action: action,
+      role: val("id_headline") || val("id_title"),
+      skills: val("id_skills"),
+      years: "",
+      section: btn.getAttribute("data-section") || "",
+      text: btn.getAttribute("data-target") ? val(btn.getAttribute("data-target")) : val("id_summary")
+    };
+    try {
+      var r = await fetch("{% url 'analyzer:builder_suggest' %}", {method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}"},
+        body: JSON.stringify(payload)});
+      var d = await r.json();
+      if (!r.ok) { setMsg(d.error || "Could not suggest."); return; }
+      if (action === "summary") document.getElementById("id_summary").value = d.summary;
+      if (action === "skills") document.getElementById("id_skills").value = (d.skills || []).join(", ");
+      if (action === "rewrite" && btn.getAttribute("data-target")) document.getElementById(btn.getAttribute("data-target")).value = d.text;
+      setMsg(d.ai ? "Written with Gemini. Edit freely." : "Draft from the built-in helper. Edit freely.");
+    } catch (e) { setMsg("Could not reach Gemini right now."); }
+  });
 });
 </script>
 {% endblock %}
