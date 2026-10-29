@@ -1,14 +1,22 @@
 {% extends "base.html" %}
 {% block title %}{% if obj %}Edit{% else %}New{% endif %} resume{% endblock %}
 {% block content %}
-<h1>{% if obj %}Edit resume{% else %}New resume{% endif %}</h1>
+<header class="page-head">
+  <div>
+    <p class="kicker">Builder</p>
+    <h1>{% if obj %}Edit resume{% else %}New resume{% endif %}</h1>
+    <p class="lede">Basics first, then summary, skills, and each section of the resume.</p>
+  </div>
+</header>
 <form method="post" class="card" novalidate>{% csrf_token %}
   {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors }}</div>{% endif %}
+  <p class="form-section">Profile</p>
   <div class="grid g2">
     {% for field in form %}{% if forloop.counter <= 8 %}<div>{% include "_field.html" %}</div>{% endif %}{% endfor %}
   </div>
   {% for field in form %}
     {% if forloop.counter > 8 %}
+      {% if field.name == "summary" %}<p class="form-section">Content</p>{% endif %}
       {% include "_field.html" %}
       {% if field.name == "summary" %}
         <button type="button" class="btn sm" id="ai-sum" style="margin:-.4rem 0 1rem">Suggest a summary from my headline and skills</button> <small id="ai-msg"></small>

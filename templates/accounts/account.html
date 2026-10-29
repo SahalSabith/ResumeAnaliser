@@ -1,11 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Account{% endblock %}
 {% block content %}
-<h1>Your account</h1>
+<header class="page-head">
+  <div>
+    <p class="kicker">Account</p>
+    <h1>Your profile</h1>
+    <p class="lede">Manage access, privacy, and stored resume data.</p>
+  </div>
+</header>
 <div class="grid g2">
   <div class="card">
-    <h2>Profile</h2>
-    <p><b>{{ user.first_name }}</b><br>{{ user.email }}<br><span class="muted">@{{ user.username }}</span></p>
+    <div class="row" style="margin-bottom:1rem">
+      <span class="avatar" style="width:48px;height:48px;font-size:1.1rem">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+      <div>
+        <h2 style="margin:0">{{ user.first_name }}</h2>
+        <p class="muted" style="margin:0">{{ user.email }} · @{{ user.username }}</p>
+      </div>
+    </div>
     <p class="muted">{{ resume_count }} resume{{ resume_count|pluralize }} stored · {{ analysis_count }} analys{{ analysis_count|pluralize:"is,es" }}</p>
     <a class="btn" href="{% url 'accounts:password_change' %}">Change password</a>
   </div>
@@ -19,7 +30,7 @@
     <p style="margin-top:1rem"><a href="{% url 'analyzer:history' %}">Manage stored resumes</a></p>
   </div>
 </div>
-<div class="card" style="border-color:#f0b9be">
+<div class="card danger-zone">
   <h2>Delete account</h2>
   <p class="muted">Permanently deletes your account, uploaded files, extracted text, analyses and built resumes. This cannot be undone.</p>
   <form method="post" action="{% url 'accounts:delete' %}" class="row">{% csrf_token %}

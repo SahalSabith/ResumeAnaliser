@@ -1,12 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Create account{% endblock %}
+{% block body_class %}auth{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<div class="form-narrow card">
-  <h1>Create your account</h1>
-  <form method="post" novalidate>{% csrf_token %}
-    {% for field in form %}{% include "_field.html" %}{% endfor %}
-    <button class="btn primary" type="submit">Create account</button>
-  </form>
-  <p class="muted" style="margin-top:1rem">Already registered? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+<div class="auth-shell">
+  <div class="form-narrow card auth-card">
+    <p class="kicker">Get started</p>
+    <h1>Create your account</h1>
+    <p class="muted">Free to use. Your files are private and you can delete them anytime.</p>
+    <form method="post" novalidate>{% csrf_token %}
+      {% for field in form %}{% include "_field.html" %}{% endfor %}
+      <button class="btn primary" type="submit">Create account</button>
+    </form>
+    <p class="muted auth-foot">Already registered? <a href="{% url 'accounts:login' %}">Sign in</a></p>
+  </div>
 </div>
 {% endblock %}

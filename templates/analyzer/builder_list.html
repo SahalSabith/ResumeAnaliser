@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Resume builder{% endblock %}
 {% block content %}
-<div class="row between"><h1>Resume builder</h1><a class="btn primary" href="{% url 'analyzer:builder_new' %}">New resume</a></div>
+<header class="page-head">
+  <div>
+    <p class="kicker">Builder</p>
+    <h1>Resume builder</h1>
+    <p class="lede">Pick a template, fill in your details, then print or download.</p>
+  </div>
+  <a class="btn primary" href="{% url 'analyzer:builder_new' %}">New resume</a>
+</header>
 {% if items %}
 <div class="grid g3">
   {% for r in items %}
   <div class="card" style="margin-top:0">
+    <p class="kicker">{{ r.get_template_display }}</p>
     <h3>{{ r.title }}</h3>
-    <p class="muted">{{ r.get_template_display }} template · updated {{ r.updated_at|date:"d M Y" }}</p>
+    <p class="muted">Updated {{ r.updated_at|date:"d M Y" }}</p>
     <div class="row">
       <a class="btn sm primary" href="{% url 'analyzer:builder_preview' r.pk %}">Open</a>
       <a class="btn sm" href="{% url 'analyzer:builder_edit' r.pk %}">Edit</a>
@@ -16,6 +24,10 @@
   </div>{% endfor %}
 </div>
 {% else %}
-<div class="card empty"><h2>No resumes yet</h2><p>Pick a template, fill in your details and download a polished resume.</p><a class="btn primary" href="{% url 'analyzer:builder_new' %}">Create your first resume</a></div>
+<div class="card empty">
+  <h2>No resumes yet</h2>
+  <p>Pick a template, fill in your details and download a polished resume.</p>
+  <a class="btn primary" href="{% url 'analyzer:builder_new' %}">Create your first resume</a>
+</div>
 {% endif %}
 {% endblock %}

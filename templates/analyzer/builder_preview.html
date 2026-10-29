@@ -2,9 +2,9 @@
 {% block title %}{{ r.title }}{% endblock %}
 {% block content %}
 <div class="no-print">
-  <div class="row between" style="margin-bottom:1rem">
+  <div class="preview-bar row between">
     <div class="row">
-      <span class="muted">Template:</span>
+      <span class="muted">Template</span>
       {% for k in keys %}<a class="btn sm {% if k == t %}primary{% endif %}" href="?t={{ k }}">{{ k|title }}</a>{% endfor %}
     </div>
     <div class="row">
@@ -14,7 +14,9 @@
       <form class="inline" method="post" action="{% url 'analyzer:builder_analyze' r.pk %}">{% csrf_token %}<button class="btn sm">Score this resume</button></form>
     </div>
   </div>
-  <p class="muted"><small>Tip: in the print dialog, choose "Save as PDF" and turn off headers and footers.</small></p>
+  <p class="muted"><small>Tip: in the print dialog, choose “Save as PDF” and turn off headers and footers.</small></p>
 </div>
+<div class="sheet-wrap">
 {% include tpl %}
+</div>
 {% endblock %}

@@ -4,35 +4,49 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}ResumeIQ{% endblock %} · ResumeIQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">Skip to content</a>
 <header class="nav">
   <div class="container">
-    <a class="brand" href="{% url 'analyzer:home' %}">Resume<b>IQ</b></a>
+    <a class="brand" href="{% url 'analyzer:home' %}"><span class="mark" aria-hidden="true">R</span>Resume<span>IQ</span></a>
     <input type="checkbox" id="nav-toggle" class="nav-toggle sr">
     <label for="nav-toggle" class="burger" aria-label="Open menu">☰</label>
     <nav class="links" aria-label="Main">
+      {% with name=request.resolver_match.url_name %}
       {% if user.is_authenticated %}
-        <a href="{% url 'analyzer:dashboard' %}">Dashboard</a>
-        <a href="{% url 'analyzer:analyze' %}">Analyze</a>
-        <a href="{% url 'analyzer:builder_list' %}">Resume builder</a>
-        <a href="{% url 'analyzer:tools' %}">Writing tools</a>
-        <a href="{% url 'analyzer:history' %}">History</a>
-        <a href="{% url 'accounts:account' %}">{{ user.first_name|default:user.username }}</a>
+        <a href="{% url 'analyzer:dashboard' %}" class="{% if name == 'dashboard' %}on{% endif %}">Dashboard</a>
+        <a href="{% url 'analyzer:analyze' %}" class="{% if name == 'analyze' %}on{% endif %}">Analyze</a>
+        <a href="{% url 'analyzer:builder_list' %}" class="{% if name == 'builder_list' or name == 'builder_new' or name == 'builder_edit' or name == 'builder_preview' %}on{% endif %}">Builder</a>
+        <a href="{% url 'analyzer:tools' %}" class="{% if name == 'tools' %}on{% endif %}">Tools</a>
+        <a href="{% url 'analyzer:history' %}" class="{% if name == 'history' %}on{% endif %}">History</a>
+        <a class="user-chip {% if name == 'account' or name == 'password_change' %}on{% endif %}" href="{% url 'accounts:account' %}">
+          <span class="avatar">{{ user.first_name|default:user.username|slice:":1"|upper }}</span>
+          {{ user.first_name|default:user.username }}
+        </a>
         <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
       {% else %}
         <a href="{% url 'accounts:login' %}">Sign in</a>
         <a href="{% url 'accounts:register' %}" class="btn primary sm">Create account</a>
       {% endif %}
+      {% endwith %}
     </nav>
   </div>
 </header>
-<main class="container">
+<main id="main" class="{% block main_class %}container{% endblock %}">
   {% for m in messages %}<div class="alert {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
   {% block content %}{% endblock %}
 </main>
-<footer><div class="container">Your resumes are private to your account and stored on this server only. You can delete any resume at any time.</div></footer>
+<footer>
+  <div class="container foot">
+    <a class="brand" href="{% url 'analyzer:home' %}"><span class="mark" aria-hidden="true">R</span>Resume<span>IQ</span></a>
+    <div>Your resumes stay private to your account. Delete any file at any time.</div>
+  </div>
+</footer>
 </body>
 </html>

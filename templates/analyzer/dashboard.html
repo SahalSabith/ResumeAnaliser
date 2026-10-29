@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="row between"><h1>Hi {{ user.first_name|default:user.username }}</h1>
-  <a class="btn primary" href="{% url 'analyzer:analyze' %}">Analyze a resume</a></div>
+<header class="page-head">
+  <div>
+    <p class="kicker">Dashboard</p>
+    <h1>Hi, {{ user.first_name|default:user.username }}</h1>
+    <p class="lede">Your latest scores, match rates, and resume drafts in one place.</p>
+  </div>
+  <a class="btn primary" href="{% url 'analyzer:analyze' %}">Analyze a resume</a>
+</header>
 
 {% if latest %}
 <div class="grid g-main">
@@ -10,7 +16,8 @@
     <div class="row" style="gap:1.5rem;flex-wrap:nowrap">
       <div class="ring {{ latest.band }}" style="--p:{{ latest.overall_score }}"><span>{{ latest.overall_score }}</span></div>
       <div>
-        <h2>Latest: {{ latest.label }}</h2>
+        <p class="kicker">Latest analysis</p>
+        <h2>{{ latest.label }}</h2>
         <p class="muted">{{ latest.resume.original_name }} · {{ latest.created_at|date:"d M Y" }}{% if latest.match_score is not None %}<br>Job match <b>{{ latest.match_score }}%</b>{% endif %}</p>
         <a class="btn sm" href="{% url 'analyzer:detail' latest.pk %}">Open full analysis</a>
       </div>
@@ -30,6 +37,8 @@
 <div class="card" style="margin-top:1rem">
   <h2>Recent analyses</h2>
   <table>
+    <thead><tr><th>Resume</th><th class="hide-sm">Date</th><th>Score</th><th>Match</th></tr></thead>
+    <tbody>
     {% for a in recent %}
     <tr>
       <td><a href="{% url 'analyzer:detail' a.pk %}">{{ a.resume.original_name }}</a>{% if a.job_title %}<br><small>for {{ a.job_title }}</small>{% endif %}</td>
@@ -37,14 +46,18 @@
       <td><b>{{ a.overall_score }}</b>/100</td>
       <td>{% if a.match_score is not None %}{{ a.match_score }}% match{% endif %}</td>
     </tr>{% endfor %}
+    </tbody>
   </table>
 </div>
 {% else %}
 <div class="card empty">
+  <p class="kicker">Get started</p>
   <h2>No analyses yet</h2>
   <p>Upload your resume to see your score, detected skills and what to fix first.</p>
-  <a class="btn primary" href="{% url 'analyzer:analyze' %}">Upload a resume</a>
-  <a class="btn" href="{% url 'analyzer:builder_new' %}">or build one</a>
+  <div class="row" style="justify-content:center">
+    <a class="btn primary" href="{% url 'analyzer:analyze' %}">Upload a resume</a>
+    <a class="btn" href="{% url 'analyzer:builder_new' %}">or build one</a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}

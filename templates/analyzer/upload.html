@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Analyze resume{% endblock %}
 {% block content %}
-<h1>Analyze a resume</h1>
+<header class="page-head">
+  <div>
+    <p class="kicker">Analyzer</p>
+    <h1>Analyze a resume</h1>
+    <p class="lede">Upload a file, optionally paste a job posting, and get a score with concrete fixes.</p>
+  </div>
+</header>
 <div class="grid g-main">
   <form method="post" enctype="multipart/form-data" class="card" novalidate>{% csrf_token %}
     {% for field in form %}
@@ -10,6 +16,9 @@
     <button class="btn primary" type="submit">Analyze resume</button>
   </form>
   <aside class="card">
+    <div class="icon-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+    </div>
     <h3>What you get</h3>
     <ul class="clean">
       <li>Score out of 100 for skills, education, formatting and impact</li>

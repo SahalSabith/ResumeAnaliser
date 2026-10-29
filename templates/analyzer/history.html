@@ -1,11 +1,19 @@
 {% extends "base.html" %}
 {% block title %}History{% endblock %}
 {% block content %}
-<h1>Analysis history</h1>
+<header class="page-head">
+  <div>
+    <p class="kicker">Library</p>
+    <h1>Analysis history</h1>
+    <p class="lede">Reopen reports, download PDFs, or remove stored files.</p>
+  </div>
+  <a class="btn primary" href="{% url 'analyzer:analyze' %}">New analysis</a>
+</header>
 <div class="card">
   {% if page.object_list %}
   <table>
-    <tr><th>Resume</th><th class="hide-sm">Date</th><th>Score</th><th>Match</th><th></th></tr>
+    <thead><tr><th>Resume</th><th class="hide-sm">Date</th><th>Score</th><th>Match</th><th></th></tr></thead>
+    <tbody>
     {% for a in page %}
     <tr>
       <td><a href="{% url 'analyzer:detail' a.pk %}">{{ a.resume.original_name }}</a>{% if a.job_title %}<br><small>{{ a.job_title }}</small>{% endif %}</td>
@@ -15,6 +23,7 @@
       <td class="row"><a class="btn sm" href="{% url 'analyzer:report' a.pk %}">PDF</a>
         <form class="inline" method="post" action="{% url 'analyzer:analysis_delete' a.pk %}">{% csrf_token %}<button class="btn sm danger" onclick="return confirm('Delete this analysis?')">Delete</button></form></td>
     </tr>{% endfor %}
+    </tbody>
   </table>
   <div class="pager">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Newer</a>{% endif %}<span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?page={{ page.next_page_number }}">Older</a>{% endif %}</div>
   {% else %}

@@ -1,22 +1,97 @@
 {% extends "base.html" %}
+{% block body_class %}landing{% endblock %}
+{% block main_class %}{% endblock %}
 {% block content %}
-<section class="hero">
-  <div>
-    <h1>Find out why your resume isn't getting replies.</h1>
-    <p class="muted" style="font-size:1.1rem;max-width:34em">Upload a PDF or DOCX, paste a job description, and get a score, the skills you're missing, and concrete fixes. Build a clean resume in minutes. Your files stay private.</p>
-    <div class="row">
-      <a class="btn primary" href="{% url 'accounts:register' %}">Analyze my resume free</a>
-      <a class="btn" href="{% url 'accounts:login' %}">Sign in</a>
+<section class="hero-wrap">
+  <div class="container hero">
+    <div>
+      <p class="kicker">Resume scoring, rebuilt</p>
+      <h1>See why your resume is not getting replies.</h1>
+      <p class="lede">Upload a PDF or DOCX, paste a job description, and get a score, missing skills, and specific fixes. Then build a clean resume in minutes. Files stay private on this server.</p>
+      <div class="pills">
+        <span class="pill">Score out of 100</span>
+        <span class="pill">Job match %</span>
+        <span class="pill">3 templates</span>
+        <span class="pill">Private by default</span>
+      </div>
+      <div class="row">
+        {% if user.is_authenticated %}
+          <a class="btn primary" href="{% url 'analyzer:analyze' %}">Analyze a resume</a>
+          <a class="btn" href="{% url 'analyzer:dashboard' %}">Open dashboard</a>
+        {% else %}
+          <a class="btn primary" href="{% url 'accounts:register' %}">Analyze my resume free</a>
+          <a class="btn" href="{% url 'accounts:login' %}">Sign in</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="product">
+      <div class="ring good" style="--p:78;--s:176px;margin-inline:auto"><span>78</span></div>
+      <p style="margin:.9rem 0 .2rem"><b>Sample resume score</b></p>
+      <small class="muted">Strong skills, weaker impact language</small>
+      <div class="meta">
+        <div><b>82</b>Skills</div>
+        <div><b>90</b>Education</div>
+        <div><b>70</b>Format</div>
+        <div><b>66</b>Impact</div>
+      </div>
     </div>
   </div>
-  <div class="card" style="text-align:center">
-    <div class="ring good" style="--p:78;--s:180px"><span>78</span></div>
-    <p style="margin:.8rem 0 0"><b>Sample resume score</b><br><small>Skills 82 · Education 90 · Format 70 · Impact 66</small></p>
+</section>
+
+<section class="container features">
+  <div class="grid g3">
+    <article class="card">
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg>
+      </div>
+      <h3>Score and skills</h3>
+      <p class="muted" style="margin:0">Reads your resume, finds technical and soft skills, education, projects and experience, then scores quality out of 100.</p>
+    </article>
+    <article class="card">
+      <div class="icon-box mint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      </div>
+      <h3>Job match</h3>
+      <p class="muted" style="margin:0">Paste any job posting to see a match percentage, missing skills and keywords, and roles that fit you.</p>
+    </article>
+    <article class="card">
+      <div class="icon-box amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </div>
+      <h3>Build and polish</h3>
+      <p class="muted" style="margin:0">Create a resume from three templates, rewrite weak bullets, and draft summaries or cover letters.</p>
+    </article>
   </div>
 </section>
-<section class="grid g3">
-  <div class="card"><h3>Score and skills</h3><p class="muted">Reads your resume, finds technical and soft skills, education, projects and experience, then scores quality out of 100.</p></div>
-  <div class="card"><h3>Job match</h3><p class="muted">Paste any job posting to see a match percentage, missing skills and keywords, and roles that fit you.</p></div>
-  <div class="card"><h3>Build and polish</h3><p class="muted">Create a resume from three templates, rewrite weak bullets and draft summaries or cover letters.</p></div>
+
+<section class="container steps">
+  <p class="kicker">How it works</p>
+  <h2>From upload to a clearer next step</h2>
+  <div class="grid g3" style="margin-top:1rem">
+    <div class="card step">
+      <span class="num">1</span>
+      <div><h3>Upload</h3><p class="muted" style="margin:0">Drop in a PDF or DOCX. Optionally paste the job you want.</p></div>
+    </div>
+    <div class="card step">
+      <span class="num">2</span>
+      <div><h3>Review</h3><p class="muted" style="margin:0">Get a score, missing skills, and a short list of the highest-impact fixes.</p></div>
+    </div>
+    <div class="card step">
+      <span class="num">3</span>
+      <div><h3>Improve</h3><p class="muted" style="margin:0">Rewrite bullets, generate a summary, or rebuild the resume on a template.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="cta-band">
+    <h2>Ready to see your score?</h2>
+    <p>Create a free account. Analysis runs on this server. AI feedback is optional.</p>
+    {% if user.is_authenticated %}
+      <a class="btn primary" href="{% url 'analyzer:analyze' %}">Analyze a resume</a>
+    {% else %}
+      <a class="btn primary" href="{% url 'accounts:register' %}">Create a free account</a>
+    {% endif %}
+  </div>
 </section>
 {% endblock %}
